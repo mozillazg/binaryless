@@ -48,7 +48,7 @@ jobs:
 
           cd alpine && IMAGE=${TMP_IMAGE} \
             PLATFORM="linux/amd64,linux/arm64,linux/arm/v7" \
-            BUILDX_OPTS="--no-cache --pull"
+            BUILDX_OPTS='--no-cache --pull' \
             make buildx
 
       - name: test
@@ -73,7 +73,7 @@ jobs:
 
           cd alpine && IMAGE=${IMAGE} \
             PLATFORM="linux/amd64,linux/arm64,linux/arm/v7" \
-            BUILDX_OPTS=""
+            BUILDX_OPTS='' \
             make buildx
 
           docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
