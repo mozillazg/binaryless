@@ -2,8 +2,8 @@ name: scan
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "00 00 */1 * *"
+#  schedule:
+#    - cron: "00 00 */1 * *"
 
 jobs:
   scan:
