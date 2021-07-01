@@ -42,9 +42,7 @@ jobs:
           set -e
 
           echo ${GITHUB_REF}
-
-          TMP_TAG="$(echo ${GITHUB_SHA} | cut -c1-12)-${GITHUB_RUN_ID}"
-          TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${TMP_TAG}"
+          TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
           echo ${TMP_IMAGE}
 
           cd alpine && IMAGE=${TMP_IMAGE} \
@@ -56,14 +54,18 @@ jobs:
         run: |
           set -e
 
-          # sudo apt-get update
-          # sudo apt-get install jq
-
-          TMP_TAG="$(echo ${GITHUB_SHA} | cut -c1-12)-${GITHUB_RUN_ID}"
-          TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${TMP_TAG}"
+          TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
           echo ${TMP_IMAGE}
 
           docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
 
       - name: build and push stable image
         run: |
@@ -78,3 +80,11 @@ jobs:
             make buildx
 
           docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USER }}/alpine:3.13'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
