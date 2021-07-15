@@ -62,6 +62,7 @@ jobs:
 
           archs=(amd64 arm arm64 ppc64le s390x)
           for a in ${archs[@]}; do \
+            docker pull ${TMP_IMAGE}-linux-${a} \
             docker manifest inspect ${TMP_IMAGE}-linux-${a} | jq '.manifests[].platform'; \
           done
 
