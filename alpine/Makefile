@@ -1,5 +1,6 @@
 
-OUTPUT_TYPE ?= docker
+# docker or registry
+OUTPUT_TYPE ?= registry
 IMAGE ?= ""
 
 OS ?= linux
