@@ -55,14 +55,16 @@ jobs:
 
       - name: test
         run: |
-          set -e
+          set -xe
 
           TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
           echo ${TMP_IMAGE}
 
           archs=(amd64 arm arm64 ppc64le s390x)
           for a in ${archs[@]}; do
-            docker manifest inspect ${TMP_IMAGE}-linux-${a} | jq '.manifests[].platform'
+            IMAGE="${TMP_IMAGE}-linux-${a}"
+            echo ${IMAGE}
+            docker manifest inspect -v "${IMAGE}" | jq '.Descriptor.platform'
           done
 
           docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
