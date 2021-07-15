@@ -17,7 +17,7 @@ push-manifest:
 	for arch in $(ALL_ARCH.linux); do \
 	    docker manifest annotate --os linux --arch $${arch} ${IMAGE} ${IMAGE}-linux-$${arch}; \
 	done
-	docker manifest push --purge ${IMAGE}:${TAG}
+	docker manifest push --purge ${IMAGE}
 
 container: .container-${OS}-$(ARCH)
 .container-linux-$(ARCH):
