@@ -46,10 +46,10 @@ jobs:
           echo ${TMP_IMAGE}
 
           archs=(amd64 arm arm64 ppc64le s390x)
-          cd alpine &&  \
-            for a in ${archs[@]}; do \
-              IMAGE=${TMP_IMAGE} ARCH=${a} make container; \
-            done
+          cd alpine
+          for a in ${archs[@]}; do
+            IMAGE=${TMP_IMAGE} ARCH=${a} make container
+          done
 
           IMAGE=${TMP_IMAGE} make push-manifest
 
@@ -61,9 +61,8 @@ jobs:
           echo ${TMP_IMAGE}
 
           archs=(amd64 arm arm64 ppc64le s390x)
-          for a in ${archs[@]}; do \
-            docker pull ${TMP_IMAGE}-linux-${a} \
-            docker manifest inspect ${TMP_IMAGE}-linux-${a} | jq '.manifests[].platform'; \
+          for a in ${archs[@]}; do
+            docker manifest inspect ${TMP_IMAGE}-linux-${a} | jq '.manifests[].platform'
           done
 
           docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
@@ -84,10 +83,10 @@ jobs:
           echo ${IMAGE}
 
           archs=(amd64 arm arm64 ppc64le s390x)
-          cd alpine &&  \
-            for a in ${archs[@]}; do \
-              IMAGE=${IMAGE} ARCH=${a} make container; \
-            done
+          cd alpine
+          for a in ${archs[@]}; do
+            IMAGE=${IMAGE} ARCH=${a} make container
+          done
 
           IMAGE=${IMAGE} make push-manifest
 

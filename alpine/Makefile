@@ -21,5 +21,5 @@ push-manifest:
 
 container: .container-${OS}-$(ARCH)
 .container-linux-$(ARCH):
-	docker buildx build --no-cache --pull --push --output=type=${OUTPUT_TYPE} --platform ${OS}/$(ARCH) \
+	docker buildx build --pull --push --output=type=${OUTPUT_TYPE} --platform ${OS}/$(ARCH) \
 		--tag $(IMAGE)-${OS}-$(ARCH) --build-arg BASE=${BASE} --build-arg ARCH=$(ARCH) .
