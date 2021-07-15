@@ -45,10 +45,13 @@ jobs:
           TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
           echo ${TMP_IMAGE}
 
-          cd alpine && IMAGE=${TMP_IMAGE} \
-            PLATFORM="linux/amd64,linux/arm64,linux/arm/v7" \
-            BUILDX_OPTS='--no-cache --pull' \
-            make buildx
+          archs=(amd64 arm arm64 ppc64le s390x)
+          cd alpine &&  \
+            for a in ${archs[@]}; do \
+              IMAGE=${TMP_IMAGE} ARCH=${a} make container; \
+            done
+
+          IMAGE=${TMP_IMAGE} make push-manifest
 
       - name: test
         run: |
@@ -56,6 +59,11 @@ jobs:
 
           TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
           echo ${TMP_IMAGE}
+
+          archs=(amd64 arm arm64 ppc64le s390x)
+          for a in ${archs[@]}; do \
+            docker manifest inspect ${TMP_IMAGE}-linux-${a} | jq '.manifests[].platform'; \
+          done
 
           docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
 
@@ -74,10 +82,13 @@ jobs:
           IMAGE="${{ secrets.DOCKER_USER }}/alpine:3.13"
           echo ${IMAGE}
 
-          cd alpine && IMAGE=${IMAGE} \
-            PLATFORM="linux/amd64,linux/arm64,linux/arm/v7" \
-            BUILDX_OPTS='' \
-            make buildx
+          archs=(amd64 arm arm64 ppc64le s390x)
+          cd alpine &&  \
+            for a in ${archs[@]}; do \
+              IMAGE=${IMAGE} ARCH=${a} make container; \
+            done
+
+          IMAGE=${IMAGE} make push-manifest
 
           docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
 
