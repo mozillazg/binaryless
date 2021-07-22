@@ -2,7 +2,7 @@ FROM golang:1.16 AS build-env
 WORKDIR /go/src/github.com/mozillazg/binaryless/example/basic
 
 COPY . .
-RUN CGO=0 go build
+RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"'
 
 FROM binaryless/alpine:3.13
 
