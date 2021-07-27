@@ -41,38 +41,43 @@ jobs:
         run: |
           set -e
 
-          echo ${GITHUB_REF}
-          TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
-          echo ${TMP_IMAGE}
-
-          archs=(amd64 arm arm64 ppc64le s390x)
-          cd alpine
-          for a in ${archs[@]}; do
-            IMAGE=${TMP_IMAGE} ARCH=${a} make container
+          dirs=(alpine debian)
+          for name in ${dirs[@]}; do
+            echo ${GITHUB_REF}
+            TMP_IMAGE="${{ secrets.DOCKER_USER }}/${name}:${{ github.sha }}-${{ github.run_id }}"
+            echo ${TMP_IMAGE}
+            (
+              IMAGE=${TMP_IMAGE} DIR=${name} make build-arch-image
+              IMAGE=${TMP_IMAGE} DIR=${name} make push-manifest
+             )
           done
-
-          IMAGE=${TMP_IMAGE} make push-manifest
 
       - name: test
         run: |
           set -xe
 
-          TMP_IMAGE="${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}"
-          echo ${TMP_IMAGE}
+          dirs=(alpine debian)
+          for name in ${dirs[@]}; do
+            TMP_IMAGE="${{ secrets.DOCKER_USER }}/${name}:${{ github.sha }}-${{ github.run_id }}"
+            echo ${TMP_IMAGE}
 
-          archs=(amd64 arm arm64 ppc64le s390x)
-          for a in ${archs[@]}; do
-            IMAGE="${TMP_IMAGE}-linux-${a}"
-            echo ${IMAGE}
-            docker manifest inspect -v "${IMAGE}" | jq '.Descriptor.platform'
-          done
+            IMAGE=${TMP_IMAGE} make test-arch-image
 
-          docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
+            docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
+        done
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (alpine)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Run Trivy vulnerability scanner (debian)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USER }}/debian:${{ github.sha }}-${{ github.run_id }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -81,23 +86,36 @@ jobs:
         run: |
           set -e
 
-          IMAGE="${{ secrets.DOCKER_USER }}/alpine:3.13"
-          echo ${IMAGE}
+          dirs=(alpine debian)
+          for name in ${dirs[@]}; do
+            if [ $(name) == 'alpine' ]; then
+              IMAGE="${{ secrets.DOCKER_USER }}/${name}:3.13"
+            else
+              IMAGE="${{ secrets.DOCKER_USER }}/${name}:10"
+            fi
+            echo ${IMAGE}
 
-          archs=(amd64 arm arm64 ppc64le s390x)
-          cd alpine
-          for a in ${archs[@]}; do
-            IMAGE=${IMAGE} ARCH=${a} make container
+            (
+              IMAGE=${IMAGE} DIR=${name} make build-arch-image
+              IMAGE=${IMAGE} DIR=${name} make push-manifest
+             )
+            IMAGE=${IMAGE} make test-arch-image
+
+            docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
           done
 
-          IMAGE=${IMAGE} make push-manifest
-
-          docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
-
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (alpine)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USER }}/alpine:3.13'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Run Trivy vulnerability scanner (debian)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USER }}/debian:10'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
