@@ -6,7 +6,7 @@ DIR =
 build-arch-image:
 	set -x; \
 	cd $(DIR) && \
-	for arch in $(ARCHS); do
+	for arch in $(ARCHS); do \
 	  IMAGE=$(IMAGE) ARCH=$${arch} make container
 	done
 
@@ -17,6 +17,6 @@ push-manifest:
 
 test-arch-image:
 	set -x; \
-	for arch in $(ARCHS); do
+	for arch in $(ARCHS); do \
 		ARCH_IMAGE=$(IMAGE)-linux-$${a} docker manifest inspect -v "$${ARCH_IMAGE}" | jq '.Descriptor.platform'
 	done
