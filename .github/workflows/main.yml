@@ -64,7 +64,7 @@ jobs:
             IMAGE=${TMP_IMAGE} make test-arch-image
 
             docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
-        done
+          done
 
       - name: Run Trivy vulnerability scanner (alpine)
         uses: aquasecurity/trivy-action@master
