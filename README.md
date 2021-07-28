@@ -8,6 +8,7 @@
 目前提供如下基础镜像：
 
 * [binaryless/alpine:3.13](./alpine/)
+* [binaryless/debian:10](./debian/)
 
 ## 使用方法
 
