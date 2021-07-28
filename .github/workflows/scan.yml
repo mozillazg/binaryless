@@ -2,20 +2,35 @@ name: scan
 
 on:
   workflow_dispatch:
-#  schedule:
-#    - cron: "00 00 */1 * *"
+  schedule:
+    - cron: "01 00 */1 * *"
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-    - name: Run Snyk to check Docker images for vulnerabilities (alpine:3.13)
-      uses: snyk/actions/docker@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        image: ${{ secrets.DOCKER_USER }}/alpine:3.13
+      - name: Run Trivy vulnerability scanner (alpine)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USER }}/alpine:3.13'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
 
+      - name: Run Trivy vulnerability scanner (debian)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USER }}/debian:10'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+
+#    - name: Run Snyk to check Docker images for vulnerabilities (alpine:3.13)
+#      uses: snyk/actions/docker@master
+#      env:
+#        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#      with:
+#        image: ${{ secrets.DOCKER_USER }}/alpine:3.13
 #    - name: Upload result to GitHub Code Scanning
 #      uses: github/codeql-action/upload-sarif@v1
 #      with:
