@@ -1,0 +1,18 @@
+FROM golang:1.16 AS build-env
+WORKDIR /go/src/github.com/mozillazg/binaryless/example/basic
+
+COPY . .
+RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"'
+
+FROM binaryless/debian:10
+
+COPY --from=build-env /go/src/github.com/mozillazg/binaryless/example/basic/basic /basic
+
+# nobody，默认 User
+# USER 65534
+# root
+# USER 0
+
+ENTRYPOINT ["/basic"]
+# or
+# CMD ["/basic"]

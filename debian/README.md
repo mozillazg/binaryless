@@ -6,7 +6,7 @@ binaryless/debian:10
 
 ## 说明
 
-与官方 `debian:10-slim` 镜像的区别如下：
+与官方 `debian:10.10-slim` 镜像的区别如下：
 
 * 镜像内不包含任何二进制可执行文件。
 * 默认 User 是 `65534(nobody)`，镜像中只包含如下 User：
