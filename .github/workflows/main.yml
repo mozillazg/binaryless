@@ -95,11 +95,9 @@ jobs:
             fi
             echo ${IMAGE}
 
-            (
-              IMAGE=${IMAGE} DIR=${name} make build-arch-image
-              IMAGE=${IMAGE} DIR=${name} make push-manifest
-             )
+            ( IMAGE=${IMAGE} DIR=${name} make build-arch-image )
             IMAGE=${IMAGE} make test-arch-image
+            ( IMAGE=${IMAGE} DIR=${name} make push-manifest )
 
             docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
           done
