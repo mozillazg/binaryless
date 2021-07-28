@@ -27,14 +27,15 @@ ENTRYPOINT ["/basic"]
 # CMD ["/basic"]
 ```
 
-因为镜像中不包含 shell 所以 `ENTRYPOINT` 和 `CMD` 指令值的格式必须是数组格式不能是字符串格式。
+* 因为镜像中不包含 shell 所以 `ENTRYPOINT` 和 `CMD` 指令的值格式必须是数组不能是字符串格式。
+* 更多使用方法详见 [./examples](./examples/)
 
 ## User
 
 镜像中只包含如下 User:
 
-* `uid=0(root) gid=0(root) groups=0(root)`
-* `uid=65534(nobody) gid=65534(nobody) groups=65534(nobody)`
+* `uid=0(root)`
+* `uid=65534(nobody)`
 
 默认 User 是 `65534(nobody)` 。
-如果需要使用 root 用户的话，在 Dockerfile 中使用 `User` 指令指定即可（`USER 0`）。
+如果需要使用 root 用户的话，在 Dockerfile 中使用 `USER` 指令指定即可（`USER 0`）。
