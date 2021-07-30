@@ -1,6 +1,6 @@
 # Binaryless Base Images
 
-不包含任何二进制可执行文件的容器基础镜像。
+不包含任何二进制可执行文件的容器基础镜像（[binaryless 镜像介绍](https://mozillazg.com/2021/05/security-use-shell-less-and-binary-less-distroless-container-with-root-less-container.html) ）。
 
 
 ## 提供的基础镜像
