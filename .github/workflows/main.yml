@@ -63,7 +63,8 @@ jobs:
           push: true
           tags: |
             binaryless/debian:dev
-      - name: test
+      -
+        name: test
         run: |
           set -xe
 
@@ -75,7 +76,7 @@ jobs:
       - name: Run Trivy vulnerability scanner (alpine)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'binaryless/alpine:${{ github.sha }}-${{ github.run_id }}'
+          image-ref: 'binaryless/alpine:dev'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -83,7 +84,7 @@ jobs:
       - name: Run Trivy vulnerability scanner (debian)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'binaryless/debian:${{ github.sha }}-${{ github.run_id }}'
+          image-ref: 'binaryless/debian:dev'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
