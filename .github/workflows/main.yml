@@ -37,39 +37,49 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
       -
-        name: build and push tmp images
-        run: |
-          set -e
-
-          dirs=(alpine debian)
-          for name in ${dirs[@]}; do
-            echo ${GITHUB_REF}
-            TMP_IMAGE="${{ secrets.DOCKER_USER }}/${name}:${{ github.sha }}-${{ github.run_id }}"
-            echo ${TMP_IMAGE}
-            (
-              IMAGE=${TMP_IMAGE} DIR=${name} make build-arch-image
-              IMAGE=${TMP_IMAGE} DIR=${name} make push-manifest
-             )
-          done
-
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build and push development container image (alpine)
+        uses: docker/build-push-action@v2
+        with:
+          context: ./alpine
+          file: ./alpine/Dockerfile
+          platforms: linux/amd64, linux/arm, linux/arm64, linux/ppc64le, linux/s390x
+          push: true
+          tags: |
+            binaryless/alpine:latest
+            binaryless/alpine:${{ github.sha }}-${{ github.run_id }}
+            ghcr.io/mozillazg/binaryless/alpine:latest
+      -
+        name: Build and push development container image (debian)
+        uses: docker/build-push-action@v2
+        with:
+          context: ./debian
+          file: ./debian/Dockerfile
+          platforms: linux/amd64, linux/arm, linux/arm64, linux/ppc64le, linux/s390x
+          push: true
+          tags: |
+            binaryless/debian:latest
+            binaryless/debian:${{ github.sha }}-${{ github.run_id }}
+            ghcr.io/mozillazg/binaryless/debian:latest
       - name: test
         run: |
           set -xe
 
-          dirs=(alpine debian)
-          for name in ${dirs[@]}; do
-            TMP_IMAGE="${{ secrets.DOCKER_USER }}/${name}:${{ github.sha }}-${{ github.run_id }}"
-            echo ${TMP_IMAGE}
-
-            IMAGE=${TMP_IMAGE} make test-arch-image
-
-            docker manifest inspect ${TMP_IMAGE} | jq '.manifests[].platform'
+          images=(binaryless/alpine:latest ghcr.io/mozillazg/binaryless/alpine:latest binaryless/debian:latest ghcr.io/mozillazg/binaryless/debian:latest)
+          for name in ${images[@]}; do
+            docker manifest inspect ${name} | jq '.manifests[].platform'
           done
 
       - name: Run Trivy vulnerability scanner (alpine)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKER_USER }}/alpine:${{ github.sha }}-${{ github.run_id }}'
+          image-ref: 'binaryless/alpine:${{ github.sha }}-${{ github.run_id }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -77,35 +87,42 @@ jobs:
       - name: Run Trivy vulnerability scanner (debian)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKER_USER }}/debian:${{ github.sha }}-${{ github.run_id }}'
+          image-ref: 'binaryless/debian:${{ github.sha }}-${{ github.run_id }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
 
-      - name: build and push stable image
-        run: |
-          set -e
-
-          dirs=(alpine debian)
-          for name in ${dirs[@]}; do
-            if [ ${name} == 'alpine' ]; then
-              IMAGE="${{ secrets.DOCKER_USER }}/${name}:3.13"
-            else
-              IMAGE="${{ secrets.DOCKER_USER }}/${name}:10"
-            fi
-            echo ${IMAGE}
-
-            ( IMAGE=${IMAGE} DIR=${name} make build-arch-image )
-            IMAGE=${IMAGE} make test-arch-image
-            ( IMAGE=${IMAGE} DIR=${name} make push-manifest )
-
-            docker manifest inspect ${IMAGE}| jq '.manifests[].platform'
-          done
+      -
+        name: Build and push stable container image (alpine)
+#        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: docker/build-push-action@v2
+        with:
+          context: ./alpine
+          file: ./alpine/Dockerfile
+          platforms: linux/amd64, linux/arm, linux/arm64, linux/ppc64le, linux/s390x
+          push: true
+          tags: |
+            binaryless/alpine:latest
+            binaryless/alpine:3.13
+            ghcr.io/mozillazg/binaryless/alpine:latest
+      -
+        name: Build and push development container image (debian)
+#        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: docker/build-push-action@v2
+        with:
+          context: ./debian
+          file: ./debian/Dockerfile
+          platforms: linux/amd64, linux/arm, linux/arm64, linux/ppc64le, linux/s390x
+          push: true
+          tags: |
+            binaryless/debian:latest
+            binaryless/debian:10
+            ghcr.io/mozillazg/binaryless/debian:latest
 
       - name: Run Trivy vulnerability scanner (alpine)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKER_USER }}/alpine:3.13'
+          image-ref: 'binaryless/alpine:3.13'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -113,7 +130,7 @@ jobs:
       - name: Run Trivy vulnerability scanner (debian)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKER_USER }}/debian:10'
+          image-ref: 'binaryless/debian:10'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
